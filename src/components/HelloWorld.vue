@@ -1,36 +1,41 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useMainStore } from '../stores'
+import { getWallets } from '@mysten/wallet-standard'
 
-defineProps({
-  msg: String,
+const mainStore = useMainStore()
+
+onMounted(() => {
+  // const wallet = getWallets().get().find(e => e.name === "Slush")
+  // wallet.features['standard:events'].on('change', (event) => {
+  //   if (event.accounts.length === 0 || event.accounts[0] !== mainStore.address) {
+  //     console.log('User change or disconnect ...');
+  //     // 断开钱包后的业务逻辑
+  //     setTimeout(() => {
+  //         window.localStorage.removeItem("connectedAddress")
+  //         window.localStorage.removeItem("connectedWallet")
+  //         window.location.reload()
+  //     }, 1000)
+  //   }
+  // });
+  mainStore.initWallet()
+  
 })
-
-const count = ref(0)
 </script>
 
 <template>
-  <h1>{{ msg }}</h1>
-
-  <div class="card">
-    <button type="button" @click="count++">count is {{ count }}</button>
-    <p>
-      Edit
-      <code>components/HelloWorld.vue</code> to test HMR
-    </p>
+  <div v-if="mainStore.address">
+    <p>connected wallet: {{ mainStore.address }}</p>
+    <input type="text" v-model="mainStore.amount" placeholder="amount" />
+    <input type="text" v-model="mainStore.toAddress" placeholder="to address" />
+    <button @click="mainStore.transferSui">transfer sui</button>
+    <div>
+      <button @click="mainStore.disconnectWallet">disconnect</button>
+    </div>
   </div>
-
-  <p>
-    Check out
-    <a href="https://vuejs.org/guide/quick-start.html#local" target="_blank"
-      >create-vue</a
-    >, the official Vue + Vite starter
-  </p>
-  <p>
-    Install
-    <a href="https://github.com/johnsoncodehk/volar" target="_blank">Volar</a>
-    in your IDE for a better DX
-  </p>
-  <p class="read-the-docs">Click on the Vite and Vue logos to learn more</p>
+  <div v-else>
+    <button v-for="wallet in mainStore.supportWallets" :key="wallet" @click="mainStore.connectWallet(wallet)">connect with:{{ wallet }}</button>
+  </div>
 </template>
 
 <style scoped>
