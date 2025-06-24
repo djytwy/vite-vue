@@ -1,6 +1,11 @@
 import { defineStore } from 'pinia'
 import { getWallets } from '@mysten/wallet-standard'
 import { Transaction } from '@mysten/sui/transactions'
+import { SuiClient, getFullnodeUrl } from '@mysten/sui/client'
+
+const suiClient = new SuiClient({
+  url: getFullnodeUrl(import.meta.env.VITE_SUPPORT_NETWORK),
+});
 
 export const useMainStore = defineStore('main', {
   state: () => ({
@@ -24,21 +29,19 @@ export const useMainStore = defineStore('main', {
       try {
         const availableWallets = getWallets().get();
         let wallet = availableWallets.find(e => e.name === walletName)
-
         await wallet.features['standard:connect'].connect();
         if (wallet.accounts.length > 0) {
           // 通常第一个就是当前 active 的地址
           const address = wallet.accounts[0].address
-          this.connectedWallet = true
+          this.connectedWallet = wallet.name
           this.address = address
-          defineStore
           window.localStorage.setItem("connectedAddress", address)
           window.localStorage.setItem("connectedWallet", wallet.name)
         }
         // 监听钱包地址变化, 断开
         wallet.features['standard:events'].on('change', (event) => {
           // 如果当前钱包的地址与存储的地址不一致或者断开连接的业务逻辑
-          if (event.accounts.length === 0 || event.accounts[0] !== this.address) {
+          if (event.accounts.length === 0 || event.accounts[0].address !== this.address) {
             console.log('User change or disconnect ...');
             setTimeout(() => {
               window.localStorage.removeItem("connectedAddress")
@@ -78,8 +81,8 @@ export const useMainStore = defineStore('main', {
         const [coin] = tx.splitCoins(tx.gas, [amount * 1e9])
         tx.transferObjects([coin], toAddress)
         const { bytes, signature } = await wallet.features['sui:signTransaction'].signTransaction({
-          transaction: txb,
-          account,
+          transaction: tx,
+          account: wallet.accounts[0],
           chain: `sui:${import.meta.env.VITE_SUPPORT_NETWORK}`
         });
         const executeRes = await suiClient.executeTransactionBlock({

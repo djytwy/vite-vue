@@ -6,18 +6,6 @@ import { getWallets } from '@mysten/wallet-standard'
 const mainStore = useMainStore()
 
 onMounted(() => {
-  // const wallet = getWallets().get().find(e => e.name === "Slush")
-  // wallet.features['standard:events'].on('change', (event) => {
-  //   if (event.accounts.length === 0 || event.accounts[0] !== mainStore.address) {
-  //     console.log('User change or disconnect ...');
-  //     // 断开钱包后的业务逻辑
-  //     setTimeout(() => {
-  //         window.localStorage.removeItem("connectedAddress")
-  //         window.localStorage.removeItem("connectedWallet")
-  //         window.location.reload()
-  //     }, 1000)
-  //   }
-  // });
   mainStore.initWallet()
   
 })
@@ -32,6 +20,7 @@ onMounted(() => {
     <div>
       <button @click="mainStore.disconnectWallet">disconnect</button>
     </div>
+    <div v-if="mainStore.hash">Transaction Hash: {{ mainStore.hash }}</div>
   </div>
   <div v-else>
     <button v-for="wallet in mainStore.supportWallets" :key="wallet" @click="mainStore.connectWallet(wallet)">connect with:{{ wallet }}</button>
