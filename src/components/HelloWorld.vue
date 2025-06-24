@@ -1,7 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { useMainStore } from '../stores'
-import { getWallets } from '@mysten/wallet-standard'
 
 const mainStore = useMainStore()
 
